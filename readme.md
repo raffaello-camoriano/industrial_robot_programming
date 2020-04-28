@@ -7,7 +7,7 @@ This repository contains the didactic material and source code of three industri
 
 ### Disclaimer
 
-**This software is released "as is" for academic purposes with no guarantees of any kind. It is not suitable for safe and reliable execution on a real robot. Always follow all safety guidance provided by robot manufacturers and prescribed by applicable laws and regulations when working with real robots, and state-of-the are safety procedures in software development, testing, and deployment.**
+**This software is released "as is" for academic purposes with no guarantees of any kind. It is not suitable for safe and reliable execution on a real robot. Always follow all safety guidance provided by robot manufacturers and prescribed by applicable laws and regulations when working with real robots, and state-of-the-art safety procedures in software development, testing, and deployment.**
 
 ### Software
 The labs are developed in PDL2, a Pascal-based language developed by Comau (https://www.comau.com/en) for programming its industrial manipulators. The provided labs are based on Comau's C4G motion programming system software.

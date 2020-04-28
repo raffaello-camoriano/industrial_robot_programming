@@ -40,17 +40,16 @@ conditions, semaphores, and the WAIT and SIGNAL statements is exemplified.
 
 ### Lab 3: Pick and Place
 
-The goal of Lab 3 is to help the class learn to write and execute PDL2 programs for pick-
-and-place handling tasks. Additionally, the use of priorities for program scheduling
+The goal of Lab 3 is to help the class learn to write and execute PDL2 programs for pick-and-place handling tasks. Additionally, the use of priorities for program scheduling
 is explored.  
 
-In particular, the lab was intended to have these learning outcomes:
+In particular, the lab is intended to have the following learning outcomes:
 
 1) How program priorities work and how they interact with motion statements
 2) Defining auxiliary frames using saved positions
-3) Using the HAND statement to control the gripper
+3) Using the `HAND` statement to control the gripper
 4) Safety measures to be respected during the pick-and-place operations
-5) Use of MOVE NEAR and MOVE AWAY
+5) Use of `MOVE NEAR` and `MOVE AWAY`
 6) Collision detection statements
 
 ### References

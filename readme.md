@@ -40,7 +40,7 @@ conditions, semaphores, and the WAIT and SIGNAL statements is exemplified.
 
 ### Lab 3: Pick and Place
 
-Thegoal of LP3 is to help the class learn to write and execute PDL2 programs for pick-
+The goal of Lab 3 is to help the class learn to write and execute PDL2 programs for pick-
 and-place handling tasks. Additionally, the use of priorities for program scheduling
 is explored.  
 

@@ -1,3 +1,5 @@
+![SMART 5 NS 16 Comau robot](https://i.ibb.co/nm2GVf0/The-SMART-NS16-industrial-robot-manipulator-W640.jpg)
+
 ### Overview
 
 This repository contains the didactic material and source code of three industrial manipulator programming labs developed for the Robot Programming Techniques course held at the University of Genoa in 2012.

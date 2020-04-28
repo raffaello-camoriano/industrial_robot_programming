@@ -1,0 +1,34 @@
+PROGRAM assemble DETACH, PRIORITY = 1
+  
+VAR
+  corner, x, xy : POSITION
+  sem1 : SEMAPHORE EXPORTED FROM assemble NOSAVE GLOBAL
+BEGIN
+  -- Set reference User Frame.
+  -- $UFRAME is the position of the user frame relative to the world.
+  -- We first set it corresponding to the world frame.
+  -- Then we used coordinates obtained online with the user frame corresponding to the world frame.
+  -- The values of corner, x and xy are saved in the .var file.
+  $UFRAME := POS(0, 0, 0, 0, 0, 0, '')
+  $UFRAME := POS_FRAME(corner, x, xy)
+  
+  -- The condition is verified after 2000ms from the beginning of the program 
+  CONDITION[1] NODISABLE :
+    WHEN START DO
+      SIGNAL sem1
+  ENDCONDITION
+  
+  ENABLE CONDITION[1]
+  -- Set GLOBAL motion variables.
+  $SPD_OPT := SPD_LIN   -- Tells to use $LIN_SPD to determine motion speed.
+  $MOVE_TYPE := JOINT   -- JOINT motion type.
+
+  WHILE TRUE DO
+    MOVE JOINT TO POS(0, 0, 0, 0, 0, 0, '')
+    MOVE JOINT TO POS(-100, 0, 0, 0, 0, 0, '')
+    MOVE JOINT TO POS(-100, -100, 0, 0, 0, 0, '')
+    MOVE JOINT TO POS(0, -100, 0, 0, 0, 0, '')
+  ENDWHILE
+  
+  
+END assemble

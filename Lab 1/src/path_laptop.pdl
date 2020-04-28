@@ -1,0 +1,142 @@
+
+
+
+-- PATH LAPTOP
+
+PROGRAM path_laptop PROG_ARM = 1
+  
+  --NODE DEFINITION
+TYPE
+  node1 = NODEDEF
+    -- Type of positional data of the node
+    $MAIN_POS   -- Cartesian position
+
+    -- Other variables that define the motion behaviour for each segment.
+    $MOVE_TYPE   -- Movement type
+    $LIN_SPD   -- Linear speed
+    $SEG_REF_IDX   -- Frame of reference
+    $SEG_FLY
+    $SEG_FLY_TYPE  -- Type of Cartesian fly motion.
+  ENDNODEDEF
+  
+VAR
+  corner, x, xy : POSITION
+  pth_laptop : PATH OF node1  
+  
+  -- This routine deallocates the memory of a path.
+
+ROUTINE reset_path(pth : PATH OF node1)
+BEGIN
+  -- It is checked wether the path was actually allocated first, to avoid runtime errors.
+  IF PATH_LEN(pth) > 0 THEN
+    NODE_DEL(pth, 1, PATH_LEN(pth))
+  ENDIF
+END reset_path
+  
+  -- Initializes all nodes of a path at position 0, movement type specified, linear speed specified
+  -- The move type of the first node will always be set to JOINT, to be sure the robot will reach it.
+
+ROUTINE init_path(pth : PATH OF node1; move_type : INTEGER; lin_spd : REAL; frame_num : INTEGER)
+VAR
+  i : INTEGER
+BEGIN
+  IF PATH_LEN(pth) > 0 THEN
+    FOR i := 1 TO PATH_LEN(pth) DO
+      pth.NODE[i].$MAIN_POS := POS(0, 0, 0, 0, 0, 0, '')
+      pth.NODE[i].$SEG_REF_IDX := frame_num
+      IF i = 1 THEN
+        pth.NODE[i].$MOVE_TYPE := JOINT
+      ELSE
+        pth.NODE[i].$MOVE_TYPE := move_type
+      ENDIF
+      pth.NODE[i].$LIN_SPD := lin_spd
+    ENDFOR
+  ENDIF
+END init_path
+  
+
+  
+  -- Main program
+BEGIN
+  -- Set reference User Frame.
+
+  $UFRAME := POS(0, 0, 0, 0, 0, 0, '')
+  $UFRAME := POS_FRAME(corner, x, xy)
+  
+  -- Set GLOBAL motion variables.
+  $SPD_OPT := SPD_LIN   -- Tells to use $LIN_SPD to determine motion speed.
+  $MOVE_TYPE := JOINT   -- JOINT motion type.
+  $FLY_TYPE := FLY_NORM -- Constant velocity of the EE during MOVEFLY is the default
+  
+  -- Deallocate path nodes
+
+  reset_path(pth_laptop)
+
+  -- Initialize auxiliary frame
+
+  pth_laptop.FRM_TBL[1] := POS(0, 300, -30, 0, 30, 0, '')
+
+  -- Allocate path nodes.
+
+  NODE_APP(pth_laptop, 8)
+  
+  -- Initialize path
+
+  init_path(pth_laptop, LINEAR, 0.2, 0)
+
+  -- Set nodes 2 and 3 belonging to the rectangular path to be passed through with constant velocity, using FLY_CART
+
+  pth_laptop.NODE[2].$SEG_FLY_TYPE := FLY_CART
+  pth_laptop.NODE[3].$SEG_FLY_TYPE := FLY_CART
+
+  -- Set nodes of the circular path to work with respect to the auxiliary frame
+
+  pth_laptop.NODE[5].$SEG_REF_IDX := 1
+  pth_laptop.NODE[6].$SEG_REF_IDX := 1
+  pth_laptop.NODE[7].$SEG_REF_IDX := 1
+
+
+  -- Set the target node of the circular motion
+  pth_laptop.NODE[7].$MOVE_TYPE := CIRCULAR
+
+  -- Node 6 must be defined as "via" node
+  pth_laptop.NODE[6].$MOVE_TYPE := SEG_VIA
+
+  -- Avoid MOVEFLY between the rectangular and the circular sub-paths. 
+  pth_laptop.NODE[4].$SEG_FLY := FALSE
+  pth_laptop.NODE[5].$SEG_FLY := FALSE
+  pth_laptop.NODE[8].$SEG_FLY := FALSE
+
+  ---- PATH NODES DEFINITON
+  
+  ---- Reference frame of the following nodes: user frame
+
+  -- Sides of the keyboard
+  pth_laptop.NODE[1].$MAIN_POS := POS(0, 0, -30, 0, 0, 0, '')
+  pth_laptop.NODE[2].$MAIN_POS := POS(-200, 0, -30, 0, 0, 0, '')
+  pth_laptop.NODE[3].$MAIN_POS := POS(-200, 300, -30, 0, 0, 0, '')
+  pth_laptop.NODE[4].$MAIN_POS := POS(0, 300, -30, 0, 0, 0, '')
+
+  ---- Reference frame of the following nodes: aux frame
+
+  -- Circular path 
+  pth_laptop.NODE[5].$MAIN_POS := POS(0, 0, -30, 0, 0, 0, '')
+  pth_laptop.NODE[6].$MAIN_POS := POS(150, -150, -30, 0, 0, 0, '')
+  pth_laptop.NODE[7].$MAIN_POS := POS(0, -300, -30, 0, 0, 0, '')
+
+  ---- Reference frame of the following nodes: user frame
+
+  -- Final position
+  pth_laptop.NODE[8].$MAIN_POS := POS(0, 0, -30, 0, 0, 0, '')
+
+  ---- END OF PATH NODES DEFINIITON
+  
+  -- Move along path
+
+  MOVE ALONG pth_laptop
+  
+  -- Deallocate path nodes
+
+  reset_path(pth_laptop)
+  
+END path_laptop

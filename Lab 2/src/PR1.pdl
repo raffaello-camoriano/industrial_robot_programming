@@ -1,0 +1,128 @@
+-- LP2 
+-- Author: Raffaello Camoriano
+
+PROGRAM PR1 DETACH
+  
+VAR
+  corner, x, xy : POSITION
+  
+  --Declare semaphores
+  
+  S1, S2 : SEMAPHORE EXPORTED FROM PR1 NOSAVE
+  
+  -- EXPORTED FROM Allows to share variables, semaphores and routines between different programs.
+  
+  -- Define positions array
+  
+  POSITIONS : ARRAY[5] OF POSITION   -- Posiitons of the path to be followed by the robot
+  flag : BOOLEAN   -- Tracks if PR2 has been called or not
+  COUNTER : INTEGER EXPORTED FROM PR1 NOSAVE   -- Counts the next position in the array to be reached
+  i : INTEGER   -- Auxiliary variable
+  
+  -- Routines
+  
+ROUTINE call_wait
+BEGIN
+  
+  IF (COUNTER < 4) AND (flag = FALSE) THEN
+    
+    flag := TRUE   -- Set PR2 call flag
+    -- If the movement is linear, interrupt the motion and go to recharge position
+    
+    LOCK    -- Interrupt motion
+    CANCEL CURRENT    -- Erase instruction
+    UNLOCK    -- Release brakes (but does not resume motion yet)
+    
+    COUNTER -= 1
+    SIGNAL S1   -- Start program 2 to recharge glue
+    WAIT S2
+  ENDIF
+    
+  IF (COUNTER =4) AND (flag = FALSE) THEN
+    flag := TRUE   -- Set PR2 call flag
+    -- If the movement is not linear, terminate the movement before recharging the glue
+    SIGNAL S1
+    WAIT S2
+  ENDIF
+  
+END call_wait
+  
+  -- begin main
+  
+BEGIN
+  
+  --Initialize semaphores
+  
+  CANCEL S1
+  CANCEL S2
+  
+  --CANCEL semaphore_var clears all unused signals. The signal counter is set to
+  --zero. This statement should be executed at the beginning of the program to clear
+  --out any outstanding signals from a previous execution.
+  --If programs are currently waiting on a SEMAPHORE, the CANCEL semaphore_var
+  --statement will result in an error.
+  
+  flag := FALSE
+  --Initialize position counter
+  COUNTER := 1
+  
+  -- Declare condition
+  CONDITION[1] NODISABLE :
+    WHEN  START DO
+     call_wait   -- call routine
+  ENDCONDITION
+  
+  ENABLE CONDITION[1]
+  
+  --Initialize positions
+  POSITIONS[1] := POS(-200, 0, -30, 0, 0, 0, '')
+  POSITIONS[2] := POS(-200, 300, -30, 0, 0, 0, '')
+  POSITIONS[3] := POS(0, 300, -30, 0, 0, 0, '')
+  POSITIONS[4] := POS(150, 150, -30, 0, 0, 0, '')
+  POSITIONS[5] := POS(0, 0, -30, 0, 0, 0, '')
+  
+  -- Set reference User Frame.
+  -- $UFRAME is the position of the user frame relative to the world.
+  -- We first set it corresponding to the world frame.
+  -- Then we used coordinates obtained online with the user frame corresponding to the world frame.
+  -- The values of corner, x and xy are saved in the .var file.
+  
+  $UFRAME := POS(0, 0, 0, 0, 0, 0, '')
+  $UFRAME := POS_FRAME(corner, x, xy)
+  
+  -- Set GLOBAL motion variables.
+  $SPD_OPT := SPD_LIN   -- Tells to use $LIN_SPD to determine motion speed.
+  $MOVE_TYPE := LINEAR   -- The default motion is set to LINEAR.
+  
+  -- MOVE SEQUENCE
+  
+  --Move safely to the initial position
+  MOVE JOINT TO (POSITIONS[5])
+  
+  FOR i := 1 TO 2 DO
+  WHILE COUNTER < 5 DO
+    IF COUNTER < 4 THEN
+      
+      MOVE TO (POSITIONS[COUNTER])
+      
+    ELSE
+      
+      MOVE CIRCULAR TO (POSITIONS[COUNTER + 1]) VIA (POSITIONS[COUNTER])
+      
+    ENDIF
+    COUNTER += 1
+  ENDWHILE
+  COUNTER :=1
+  ENDFOR
+  
+  
+  
+  --If P2 has not been called, it is deactivated.
+  IF flag = FALSE THEN
+    DEACTIVATE PR2
+    WRITE LUN_CRT ('PR2 deactivated')
+  ENDIF
+  
+  WRITE LUN_CRT ('End of PR1')
+  
+END PR1

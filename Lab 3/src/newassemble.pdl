@@ -1,0 +1,87 @@
+PROGRAM newassemble DETACH
+  
+VAR
+  corner, x, xy : POSITION
+  PIECES : ARRAY[3] OF POSITION
+  TARGET : ARRAY[3] OF POSITION
+  OBJ1, OBJ2, OBJ3, FRAME_OBJ, VIA_OBJ : POSITION
+  TAR1, TAR2, TAR3, VIA_TAR, FRAME_TAR : POSITION
+  sem1 : SEMAPHORE EXPORTED FROM waiting NOSAVE GLOBAL
+  COUNTER : INTEGER
+
+
+BEGIN
+ 
+   -- Collision detection setting. Nice optional feature useful in case of collision possibility.
+   -- Our Comau system does not contain the apposite drivers unfortunately
+
+    --$CRNT_DATA[1].COLL_ENBL:=TRUE	--collision detection enabling
+    --$COLL_EFFECT:=0 	--set drive off when a collision has been detected
+    --BIT_SET($ARM_DATA[1].A_ALONG_1D[12],11)	--enable arm yielding after collision
+    --$COLL_TYPE:=COLL_MEDIUM   --apply a medium sensitivity to collision detection
+
+  -- Set reference User Frame.
+  -- $UFRAME is the position of the user frame relative to the world.
+  -- We first set it corresponding to the world frame.
+  -- Then we used coordinates obtained online with the user frame corresponding to the world frame.
+
+
+  $UFRAME := POS(0, 0, 0, 0, 0, 0, '')
+  
+  -- We have to set the tool parameter in order to move the TCP in the center of it.
+  -- In the case of our magnetic gripper, becaus of its being perfectly symmetric wrt
+  -- the Z axis of the flange, we have only had to set the Z offset
+
+  $TOOL := POS(0, 0, 0, 0, 0, 0, '')
+  --$TOOL := POS(0, 0, 102.2, 0, 0, 0, '')
+  
+  -- Set GLOBAL motion variables, in order to have the desired default values.
+  $SPD_OPT := SPD_LIN   -- Tells to use $LIN_SPD to determine motion speed.
+  $MOVE_TYPE := JOINT   -- JOINT motion type.
+  
+  -- Store all pieces and target positions into 2 different apposite arrays,
+  -- for an easier indexing in loop environment
+  PIECES[1] := OBJ1
+  PIECES[2] := OBJ2
+  PIECES[3] := OBJ3
+  
+  TARGET[1]:=TAR1
+  TARGET[2]:=TAR2
+  TARGET[3]:=TAR3
+
+  -- In the following while loop, the pick&place operation is performed:
+  -- The robot moves once at a time the 3 pieces from their actual position
+  -- to the respective target one.
+  -- In doing it, it has to follow a precise "path": between each initial and 
+  -- final position it has infact to pass through to via-points, each one directly 
+  -- above one of the two sets of positions. This is only a safety reason, in order
+  -- not to make the arm accidentally hurt anything.
+  -- in order to have a precise picking up and positioning of the pieces also move near
+  -- and move away has been used. These types of motion make the TCP approach the position
+  -- (or leave it) by a defined offset in a direction specified by the "approach vector"
+  -- of the very position. The necessity of modifying didn't arise, since it is as a default
+  -- along the Z axis of the tool.
+  -- The program is supposed to end definitely after its first execution.
+
+	COUNTER:=0
+	WHILE COUNTER<3 DO
+	  COUNTER:=COUNTER + 1
+	  $UFRAME:=FRAME_OBJ
+	  MOVE TO VIA_OBJ
+          $PROG_SPD_OVR:=15
+	  MOVE NEAR PIECES[COUNTER] BY 50
+	  MOVE TO PIECES[COUNTER]
+	  CLOSE HAND 1
+	  MOVE AWAY 50 
+	  MOVE TO VIA_OBJ
+	  $UFRAME:=FRAME_TAR
+  	  MOVE TO VIA_TAR 
+	  MOVE NEAR TARGET[COUNTER] BY 50
+	  MOVE TO TARGET[COUNTER]
+	  OPEN HAND 1
+  	  MOVE AWAY 50
+	  $PROG_SPD_OVR:=50
+	  MOVE TO VIA_TAR
+	ENDWHILE
+	  
+END newassemble

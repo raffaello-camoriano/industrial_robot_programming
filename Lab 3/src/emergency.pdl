@@ -1,0 +1,16 @@
+PROGRAM emergency DETACH, PRIORITY = 2
+  
+VAR
+  corner, x, xy : POSITION
+  sem1 : SEMAPHORE EXPORTED FROM assemble NOSAVE GLOBAL
+  
+BEGIN
+  $UFRAME := POS(0, 0, 0, 0, 0, 0, '')
+  $UFRAME := POS_FRAME(corner, x, xy)
+  
+  WHILE TRUE DO
+    WAIT sem1
+    MOVE JOINT TO POS(0, 0, -300, 0, 0, 0, '')
+    --MOVE JOINT TO POS(0, 100, -300, 0, 0, 0, '')
+  ENDWHILE
+END emergency

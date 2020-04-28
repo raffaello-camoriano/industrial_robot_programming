@@ -1,0 +1,34 @@
+-- LP2 
+-- Author: Raffaello Camoriano
+
+PROGRAM PR2 DETACH
+  
+
+VAR
+  
+  S1, S2 : SEMAPHORE EXPORTED FROM PR1 NOSAVE
+  current_pos : POSITION
+  COUNTER : INTEGER EXPORTED FROM PR1 NOSAVE
+
+  --  begin main  
+BEGIN
+
+  WAIT S1
+  
+  -- Save current position
+  current_pos := ARM_POS(1)
+  
+  RESUME 
+  
+  -- Recharge glue (moving safely)
+  MOVE JOINT TO POS(200, 200, -200, 0, 0, 0, '')
+  DELAY 2000
+  
+  -- Go back to the initial position (moving safely)
+  MOVE JOINT TO current_pos
+  DELAY 500	-- Wait before resuming the interrupted motion.
+ 
+  SIGNAL S2
+  WRITE LUN_CRT ('End of PR2')
+
+END PR2

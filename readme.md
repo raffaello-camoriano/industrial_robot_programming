@@ -56,4 +56,4 @@ In particular, the lab was intended to have these learning outcomes:
 
 ### References
 
-- PDL2 Languade Specs (ITA): http://www.prisma.unina.it/courses/pdl2.pdf
+- PDL2 Language Specs (ITA): http://www.prisma.unina.it/courses/pdl2.pdf
